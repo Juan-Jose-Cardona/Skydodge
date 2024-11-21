@@ -10,7 +10,7 @@ var scene = null,
 
 var player = null,
   fallingObjects = []
-fallingEnemies = [],
+  fallingEnemies = [],
   fallingObjectives = [],
   explsionObjects = [],
   health = 3,
@@ -18,8 +18,8 @@ fallingEnemies = [],
   score = 0,
   time = 0,
   gameOver = false,
-  speed = 0.7,
-  speedObj = 0.4,
+  speed = 0.6,
+  speedObj = 0.3,
   gravity = 0.02,
   maxObjects = 9999999999999,
   gravityIncrement = 0.001,
@@ -330,7 +330,7 @@ function spawnObjective() {
     objLoader.setPath(generalPath);
     objLoader.load(fileObj, function (object) {
 
-      object.scale.set(1, 1, 1);
+      object.scale.set(1.3, 1.3, 1.3);
       object.position.set((Math.random() - 0.5) * 10, -7, -150);
 
       object.name = "baseObjective" + time;
@@ -359,7 +359,7 @@ function spawnObjective() {
 
   // Seguir generando objetos hasta el límite
   if (!gameOver && fallingObjectives.length < maxObjects) {
-    setTimeout(spawnObjective, Math.random() * 20000 + 1000);
+    setTimeout(spawnObjective, Math.random() * 1500 + 500);
   }
 }
 
@@ -479,6 +479,7 @@ function animate() {
   // Código existente en tu función animate
   updateProjectiles(); // Usa delta para actualizar la posición de los proyectiles
   checkCollisions(); // Verifica las colisiones entre proyectiles y enemigos
+  checkCollisionsObjectives();
 
   requestAnimationFrame(animate);
 
@@ -515,12 +516,16 @@ function endGame(victory) {
   }
 
   lost.addEventListener('click', restartGame);
+  win.addEventListener('click', restartGame);
 }
 
 function restartGame() {
 
   //quita pantalla de derrota
   document.getElementById('lost').style.display = 'none';
+  document.getElementById('cointainerOthers').style.display = 'block';
+
+  document.getElementById('win').style.display = 'none';
   document.getElementById('cointainerOthers').style.display = 'block';
 
   // Reiniciar variables
@@ -555,6 +560,7 @@ function restartGame() {
   generateCaptus();
   generateGrass();
   spawnEnemy();
+  spawnObjective();
   animate();
 }
 
@@ -576,10 +582,6 @@ function createLight() {
 function go2Play() {
   document.getElementById('blocker').style.display = 'none';
   document.getElementById('cointainerOthers').style.display = 'block';
-
-  //quita pantalla de derrota
-  //document.getElementById('lost').style.display = 'none';
-  //document.getElementById('cointainerOthers').style.display = 'block';
 
   playAudio(x);
   spawnEnemy();
@@ -633,7 +635,7 @@ function createProjectile(type, startPosition, direction) {
     const material = new THREE.MeshLambertMaterial({ color: 0xfffb00 }); // Color del proyectil
     projectile = new THREE.Mesh(geometry, material);
 
-    projectile.id = "bullet";
+    projectile.name = "bullet";
 
   }
 
@@ -642,7 +644,7 @@ function createProjectile(type, startPosition, direction) {
     
     projectile = bomb;
 
-    projectile.id = "bomb";
+    projectile.name = "bomb";
     
 
   }
@@ -692,15 +694,18 @@ function updateProjectiles() {
   projectiles.forEach((projectile, index) => {
     // Mover el proyectil según su dirección
 
-    if(projectile.id == "bullet"){
+    if(projectile.name == "bullet"){
+      
 
-      v = 0.5;
+      v = 0.4;
 
     }
 
     else{
-      v = 0.1;
+      v = 0.05;
     }
+
+    console.log(projectile.name);
     projectile.position.x += projectile.userData.direction.x * v; // Velocidad en x
     projectile.position.y += projectile.userData.direction.y * v; // Velocidad en y
     projectile.position.z += projectile.userData.direction.z * v; // Velocidad en z
@@ -744,6 +749,52 @@ function checkCollisions() {
         fallingEnemies.splice(j, 1);
 
         // Puedes agregar algún efecto o sonido aquí
+
+        break;
+      }
+    }
+  }
+}
+
+//base enemiga
+function checkCollisionsObjectives() {
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const projectile = projectiles[i];
+    for (let j = fallingObjectives.length - 1; j >= 0; j--) {
+      const enemy = fallingObjectives[j];
+
+      // Verifica la distancia entre el proyectil y el enemigo
+      if (projectile.position.distanceTo(enemy.position) < 4) { // Ajusta el valor de colisión según sea necesario
+
+        //activa sonido
+        loadCollisionSound("explosion");
+
+        // Eliminar enemigo y proyectil en colisión
+        scene.remove(projectile);
+        projectiles.splice(i, 1);
+
+        console.log("se ha elimindado la base: " + enemy.name);
+        showExplosion(enemy.position.x, enemy.position.y, enemy.position.z);
+
+        console.log("Explosion Base");
+
+        score++;
+
+        scoreDisplay.innerText = `Points: ${score}`;
+
+        scene.remove(enemy);
+        fallingEnemies.splice(j, 1);
+
+        // Puedes agregar algún efecto o sonido aquí
+        if (score > 9) {
+          loadCollisionSound("explosion");
+          document.getElementById("win").style.display = "block";
+          document.getElementById("cointainerOthers").style.display = "none";
+          pauseAudio(x);
+          playAudio(z);
+          endGame(false);
+
+        }
 
         break;
       }
@@ -839,7 +890,7 @@ document.addEventListener('keydown', (event) => {
 
     const currentTime = Date.now();
 
-    if ((currentTime - lastShotTime) >= 300) {
+    if ((currentTime - lastShotTime) >= 900) {
 
       lastShotTime = currentTime;
       console.log('¡Disparo!');
