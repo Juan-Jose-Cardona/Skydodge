@@ -38,10 +38,11 @@ const keys = {
 // Array para almacenar los proyectiles
 const projectiles = [];
 
-
+let isTabVisible = true;
 
 //saber el tiempo inicial
 let previousTime = Date.now();
+let lastTime = Date.now();
 
 // Variable para rastrear el tiempo del último disparo
 let lastShotTime = 0;
@@ -74,6 +75,8 @@ function start() {
   animate();
 }
 
+
+
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -87,8 +90,6 @@ function initScene() {
 
 
   initBasicElements(); // Scene, Camera and Render
-
-  initSound();         // To generate 3D Audio
   createLight();       // Create light
 
   
@@ -245,6 +246,7 @@ function createMap() {
 }
 
 function spawnEnemy() {
+  if(!isTabVisible) return; //no hacer nada y salirse
 
   maxObjects++;
 
@@ -324,6 +326,7 @@ function createBomb() {
 }
 
 function spawnObjective() {
+  if(!isTabVisible) return; //no hacer nada y salirse
 
   maxObjects++;
 
@@ -371,7 +374,7 @@ function spawnObjective() {
 
   // Seguir generando objetos hasta el límite
   if (!gameOver && fallingObjectives.length < maxObjects) {
-    setTimeout(spawnObjective, Math.random() * 4500 + 500);
+    setTimeout(spawnObjective, Math.random() * 7500 + 1000);
   }
 }
 
@@ -524,23 +527,6 @@ function animate() {
 
 }
 
-//la camara sigue al jugador
-/*
-function updateCamera() {
-  // Ajustar la posición de la cámara relativa al jugador
-
-  if(player!=null){
-        camera.position.set(
-            player.position.x,       // Coincidir en el eje X
-            player.position.y + 2,   // Elevar un poco la cámara en el eje Y
-            player.position.z + 3  // Colocar la cámara detrás en el eje Z
-        );
-        // Hacer que la cámara mire hacia el jugador
-        //camera.lookAt(player.position);
-        
-  }
-}
-*/
 function endGame(victory) {
   gameOver = true;
   //resultMessage.classList.remove('hidden');
@@ -612,9 +598,6 @@ function restartGame() {
 
 }
 
-function initSound() {
-  // 3d Sound
-}
 
 function createLight() {
   var light2 = new THREE.AmbientLight(0xffffff);
@@ -622,6 +605,9 @@ function createLight() {
   scene.add(light2);
   light = new THREE.DirectionalLight(0xffffff, 0, 1000);
   scene.add(light);
+  var light3 = new THREE.Spotlight(0xfc1703);
+  light3.position.set(0, 0, -5);
+  scene.add(light3);
 }
 
 // ----------------------------------
@@ -902,7 +888,7 @@ document.addEventListener('keydown', (event) => {
 
     const currentTime = Date.now();
 
-    if ((currentTime - lastShotTime) >= 2000) {
+    if ((currentTime - lastShotTime) >= 1000) {
 
       lastShotTime = currentTime;
       console.log('¡Disparo!');
@@ -920,7 +906,31 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
+//saber si la ventana esta activa
 
+document.addEventListener("visibilitychange", function() {
+  isTabVisible = !document.hidden;
+  if (!isTabVisible) {
+      console.log("Pestaña no visible. Generación de enemigos pausada.");
+  } else {
+      console.log("Pestaña visible. Reanudando generación de enemigos.");
+      // Reanudar la generación de enemigos si el juego no ha terminado
+      if (!gameOver && fallingEnemies.length < maxObjects) {
+          spawnEnemy();
+      }
+
+      if (!gameOver && fallingObjectives.length < maxObjects) {
+        spawnObjective();
+      }
+
+      if (!gameOver && fallingObjects.length < maxObjects) {
+        generateCaptus();
+        generateTree();
+        generateGrass();
+      }
+
+  }
+});
 
 //funciones sonidos
 
@@ -1003,6 +1013,7 @@ function createSound(path) {
 //decoracion mapa
 
 function generateCaptus() {
+  if(!isTabVisible) return; //no hacer nada y salirse
 
   //maxObjects++;
 
@@ -1042,6 +1053,7 @@ function generateCaptus() {
 }
 
 function generateTree() {
+  if(!isTabVisible) return; //no hacer nada y salirse
 
   //maxObjects++;
 
@@ -1082,7 +1094,7 @@ function generateTree() {
 
 
 function generateGrass() {
-
+  if(!isTabVisible) return; //no hacer nada y salirse
   //maxObjects++;
 
   var generalPath = "../src/modelos/grass/";

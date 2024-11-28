@@ -273,6 +273,12 @@
     z-index: 15;
 }
 
+#timer label {
+    padding: 5px 10px;  /* Espaciado interno para hacer los labels más legibles */
+    background-color: #f2f2f2;  /* Un fondo ligero para destacar los labels */
+    border-radius: 5px;  /* Bordes redondeados para estética */
+}
+
 .timertext {
     font-size: 30px;
     margin-left: 20px;
