@@ -38,6 +38,7 @@ const keys = {
 // Array para almacenar los proyectiles
 const projectiles = [];
 
+//variable para saber si la ventana esta activa
 let isTabVisible = true;
 
 //saber el tiempo inicial
@@ -99,7 +100,7 @@ function initScene() {
 
 function setBackground() {
   const loader = new THREE.TextureLoader();
-  const texture = loader.load('./src/img/desertBackground2.jpg', function (texture) {
+  const texture = loader.load('./src/img/backgroundgame.png', function (texture) {
     // Establecer la textura como fondo de la escena
     scene.background = texture;
   });
@@ -114,7 +115,7 @@ function initBasicElements() {
   scene = new THREE.Scene();
 
   setBackground();
-  //scene.background = new THREE.Color(colorFog);
+  
 
 
 
@@ -125,7 +126,7 @@ function initBasicElements() {
     1000                                    // Mas lejos (no renderiza)
   );
 
-  // renderer = new THREE.WebGLRenderer();
+  
 
   renderer = new THREE.WebGLRenderer({ canvas: document.querySelector("#app") });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -134,12 +135,10 @@ function initBasicElements() {
 
   scene.fog = new THREE.Fog(colorFog, nearFog, far);
 
-  //camera.rotateX(Math.PI / -7);
+  
   camera.position.z = 6;
 
-  //carga el sonido de explosion
-  //loadCollisionSound("explosion");
-  //loadCollisionSound("shoot");
+  
 
   //crearJugador
   createPlayer();
@@ -147,13 +146,11 @@ function initBasicElements() {
 
   //agrega mapa
   createMap();
-  //generateTerrain();
-  //generateTerrain("grass");
-  //generateTerrain("tree");
+  
 
   // Iniciar la caída de enemigos y intervalo en el que aparecen
 
-  //spawnEnemy();
+  
   setInterval(countdown, 1000);
   animate();
 }
@@ -444,11 +441,7 @@ function playerMove() {
         console.log("reproduceExplosion");
         updateHealth(health);
 
-        /*
-        player.style.visibility = false; 
-        setTimeout(1000);
-        player.style.visibility = true;
-        */
+        
 
         if (health < 1) {
           loadCollisionSound("explosion");
@@ -561,39 +554,6 @@ function endGame(victory) {
 
 function restartGame() {
 
-  /*
-  //quita pantalla de derrota
-  document.getElementById('lost').style.display = 'none';
-  document.getElementById('cointainerOthers').style.display = 'block';
-
-  document.getElementById('win').style.display = 'none';
-  document.getElementById('cointainerOthers').style.display = 'block';
-
-  // Reiniciar variables
-  playAudio(x);
-
-  health = 3;
-  score = 0;
-  kills = 0;
-  time = 0;
-  gravity = 0.01;  // Reiniciar gravedad
-  gameOver = false;
-  healthDisplay.innerText = 'Health: 3';
-  scoreDisplay.innerText = 'Points: 0';
-  killDisplay.innerText = 'Kills: 0';
-  timeDisplay.innerText = 'Time: 0';
-  resultMessage.classList.add('hidden');
-  restartBtn.classList.add('hidden');
-
-  // Iniciar nuevamente
-  generateTree();
-  generateCaptus();
-  generateGrass();
-  spawnEnemy();
-  spawnObjective();
-  animate();
-  */
-
   window.location.reload();
 
 }
@@ -605,7 +565,7 @@ function createLight() {
   scene.add(light2);
   light = new THREE.DirectionalLight(0xffffff, 0, 1000);
   scene.add(light);
-  var light3 = new THREE.Spotlight(0xfc1703);
+  var light3 = new THREE.SpotLight(0xfc1703);
   light3.position.set(0, 0, -5);
   scene.add(light3);
 }

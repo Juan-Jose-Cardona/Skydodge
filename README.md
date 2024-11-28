@@ -91,4 +91,10 @@ El juego utiliza un flujo basado en frames (requestAnimationFrame) para gestiona
 
 Descripción de funciones:
 
+Solución de errores:
 
+Efecto "estampida"
+
+Para el codigo se presentaba un error en el cual al dejar una ventana en segundo plano se acumulaban los objetos de 3D, para solucionar este incoveniente se integro isTabVisible, una variable que se agregaria a todas las funciones que crearan un arreglo de elementos, desde enemigos hasta el entorno.
+
+de ahi en document.addEventListener("visibilitychange", function() {}); se evalua por un condicional si la ventana es visible, a lo que si no es visible, en cada funcion de crear objetos se hace un retorno evitando la sobreacumulación. Si la ventana es visible el programa permite que se generen mas enemigos.
