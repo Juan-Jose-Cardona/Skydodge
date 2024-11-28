@@ -6,7 +6,8 @@ var scene = null,
   renderer = null,
   controls = null,
   clock = null,
-  light = null;
+  light = null,
+  aim = null;
 
 var player = null,
   fallingObjects = []
@@ -18,8 +19,8 @@ var player = null,
   score = 0,
   time = 0,
   gameOver = false,
-  speed = 0.6,
-  speedObj = 0.3,
+  speed = 0.5,
+  speedObj = 0.2,
   gravity = 0.02,
   maxObjects = 9999999999999,
   gravityIncrement = 0.001,
@@ -32,8 +33,12 @@ const keys = {
   down: false
 };
 
+
+
 // Array para almacenar los proyectiles
 const projectiles = [];
+
+
 
 //saber el tiempo inicial
 let previousTime = Date.now();
@@ -46,7 +51,11 @@ let explosionSound;
 let shotSound;
 
 // UI Elements
-const healthDisplay = document.getElementById("health");
+
+const healthBar = document.getElementById('health');
+const healthText = document.getElementById('health-text'); // Elemento de texto separado
+
+//const healthDisplay = document.getElementById("health");
 const scoreDisplay = document.getElementById("score");
 const killDisplay = document.getElementById("kills");
 const timeDisplay = document.getElementById("time");
@@ -180,6 +189,8 @@ function createPlayer() {
     });
   });
 
+  //crea la mira
+  createReticle();
 
   // Evento de teclado
   window.addEventListener('keydown', (e) => {
@@ -196,6 +207,7 @@ function createPlayer() {
     if (e.key === 'ArrowDown') keys.down = false;
 
   });
+
 
 }
 
@@ -359,7 +371,7 @@ function spawnObjective() {
 
   // Seguir generando objetos hasta el límite
   if (!gameOver && fallingObjectives.length < maxObjects) {
-    setTimeout(spawnObjective, Math.random() * 1500 + 500);
+    setTimeout(spawnObjective, Math.random() * 4500 + 500);
   }
 }
 
@@ -418,7 +430,7 @@ function playerMove() {
 
       if ((object.position.distanceTo(player.position) < 1.5) || (object.position.distanceTo(player.position) < -1.5)) {
         health--;
-        healthDisplay.innerText = `Health: ${health}`;
+        //healthDisplay.innerText = `Health: ${health}`;
 
         showExplosion(object.position.x, object.position.y, object.position.z);
 
@@ -427,6 +439,7 @@ function playerMove() {
         loadCollisionSound("explosion");
 
         console.log("reproduceExplosion");
+        updateHealth(health);
 
         /*
         player.style.visibility = false; 
@@ -457,9 +470,27 @@ function playerMove() {
   });
 
 
-
-
   //updateCamera();
+}
+
+function updateHealth(health) {
+
+  // Actualizar el ancho de la barra y el atributo 'aria-valuenow'
+  healthBar.style.width = '100%';
+  healthBar.setAttribute('aria-valuenow', health);
+
+  // Actualizar solo el texto de salud dentro del span
+  healthText.innerText = 'Health: ' + health;
+
+  // Actualizar el color de la barra de progreso según el porcentaje
+  if (health > 2) {
+      healthBar.className = 'progress-bar bg-success';
+  } else if (health > 1) {
+      healthBar.className = 'progress-bar bg-warning';
+  } else {
+      healthBar.className = 'progress-bar bg-danger';
+  }
+
 }
 
 function animate() {
@@ -470,6 +501,12 @@ function animate() {
   playerMove();
 
   //updateCamera();
+  if (player != null) {
+
+    update();
+
+  }
+  
 
   //disparar
   const currentTime = Date.now();
@@ -515,12 +552,30 @@ function endGame(victory) {
     resultMessage.innerText = '¡Perdiste! ';
   }
 
+  // Eliminar los objetos restantes
+  fallingEnemies.forEach(obj => scene.remove(obj));
+  fallingEnemies = [];
+
+  fallingObjectives.forEach(obj => scene.remove(obj));
+  fallingObjectives = [];
+
+  fallingObjects.forEach(obj => scene.remove(obj));
+  fallingObjects = [];
+
+  //posicion OG del jugador
+
+  player.position.x = 0;
+  player.position.y = 0;
+  player.position.z = -0.5;
+
   lost.addEventListener('click', restartGame);
   win.addEventListener('click', restartGame);
 }
 
+
 function restartGame() {
 
+  /*
   //quita pantalla de derrota
   document.getElementById('lost').style.display = 'none';
   document.getElementById('cointainerOthers').style.display = 'block';
@@ -544,17 +599,6 @@ function restartGame() {
   resultMessage.classList.add('hidden');
   restartBtn.classList.add('hidden');
 
-  // Eliminar los objetos restantes
-  fallingEnemies.forEach(obj => scene.remove(obj));
-  fallingEnemies = [];
-
-  fallingObjects.forEach(obj => scene.remove(obj));
-  fallingObjects = [];
-
-  player.position.x = 0;
-  player.position.y = 0;
-  player.position.z = -0.5;
-
   // Iniciar nuevamente
   generateTree();
   generateCaptus();
@@ -562,6 +606,10 @@ function restartGame() {
   spawnEnemy();
   spawnObjective();
   animate();
+  */
+
+  window.location.reload();
+
 }
 
 function initSound() {
@@ -593,23 +641,6 @@ function showNameStudents() {
 }
 
 //creacion de proyectiles
-
-/*
-function shootProjectile() {
-
-  const geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1); // Define el tamaño del proyectil
-  const material = new THREE.MeshLambertMaterial({ color: 0xfffb00 }); // Color del proyectil
-  const projectile = new THREE.Mesh(geometry, material);
-
-  // Posiciona el proyectil en la posición del jugador
-  projectile.position.copy(player.position);
-  projectile.direction = new THREE.Vector3(0, 0, 1).applyQuaternion(player.quaternion); // Dirección hacia adelante
-
-  scene.add(projectile);
-  projectiles.push(projectile);
-
-}
-*/
 
 function shootForwardProjectile() {
   const forwardProjectile = createProjectile("front", player.position, { x: 0, y: 0, z: -1 });
@@ -668,24 +699,6 @@ function createProjectile(type, startPosition, direction) {
 }
 
 //actualiza movimiento de proyectiles
-
-/*
-function updateProjectiles(delta) {
-
-  for (let i = projectiles.length - 1; i >= 0; i--) {
-
-      const projectile = projectiles[i];
-      projectile.position.add(projectile.direction.clone().multiplyScalar(delta * 20)); // Ajusta la velocidad del proyectil
-
-      // eliminar proyectil si se va lejos
-      if (projectile.position.length() > 50) {
-
-          scene.remove(projectile);
-          projectiles.splice(i, 1);
-      }
-  }
-}
-*/
 
 function updateProjectiles() {
 
@@ -761,10 +774,10 @@ function checkCollisionsObjectives() {
   for (let i = projectiles.length - 1; i >= 0; i--) {
     const projectile = projectiles[i];
     for (let j = fallingObjectives.length - 1; j >= 0; j--) {
-      const enemy = fallingObjectives[j];
+      const Objective = fallingObjectives[j];
 
       // Verifica la distancia entre el proyectil y el enemigo
-      if (projectile.position.distanceTo(enemy.position) < 4) { // Ajusta el valor de colisión según sea necesario
+      if (projectile.position.distanceTo(Objective.position) < 4) { // Ajusta el valor de colisión según sea necesario
 
         //activa sonido
         loadCollisionSound("explosion");
@@ -773,8 +786,8 @@ function checkCollisionsObjectives() {
         scene.remove(projectile);
         projectiles.splice(i, 1);
 
-        console.log("se ha elimindado la base: " + enemy.name);
-        showExplosion(enemy.position.x, enemy.position.y, enemy.position.z);
+        console.log("se ha elimindado la base: " + Objective.name);
+        showExplosion(Objective.position.x, Objective.position.y, Objective.position.z);
 
         console.log("Explosion Base");
 
@@ -782,8 +795,8 @@ function checkCollisionsObjectives() {
 
         scoreDisplay.innerText = `Points: ${score}`;
 
-        scene.remove(enemy);
-        fallingEnemies.splice(j, 1);
+        scene.remove(Objective);
+        fallingObjectives.splice(j, 1);
 
         // Puedes agregar algún efecto o sonido aquí
         if (score > 9) {
@@ -831,37 +844,36 @@ function showExplosion(x, y, z) {
 
 }
 
+// Función para cargar la textura y crear el sprite
+
+
+
+function createReticle() {
+
+  const textureLoader = new THREE.TextureLoader();
+  const reticleTexture = textureLoader.load('./src/img/miraSVG.svg');
+  const reticleMaterial = new THREE.SpriteMaterial({ map: reticleTexture, lights: false, depthTest: false });
+  const reticleSprite = new THREE.Sprite(reticleMaterial);
+
+  reticleSprite.scale.set(2, 2, 2); // Ajusta el tamaño según necesites
+
+  scene.add(reticleSprite);
+  
+  aim = reticleSprite;
+  
+}
+
+function update() {
+
+  // Ajusta la posición de la mira para que esté frente al avión
+  aim.position.copy(player.position);
+  aim.position.z -= 30; // Ajusta esta distancia según sea necesario
+
+  // Otros códigos de actualización...
+
+}
+
 //control para disparar
-
-// Evento para detectar teclas
-/*
-document.addEventListener('keydown', (event) => {
-
-  if (event.code === 'Space') {
-
-    const currentTime = Date.now();
-
-    if((currentTime - lastShotTime) >= 300){
-
-      lastShotTime = currentTime;
-      console.log('¡Disparo!');
-
-      shootProjectile(); // Llama a la función para disparar un proyectil
-      //carga sonido
-      loadCollisionSound("shoot");
-
-    }
-
-    else {
-    console.log('Espera antes de disparar nuevamente.');
-    }
-      
-      
-      
-  }
-
-});
-*/
 
 document.addEventListener('keydown', (event) => {
   if (event.code === 'Space') { // Tecla Espaciadora para disparar hacia adelante
@@ -890,7 +902,7 @@ document.addEventListener('keydown', (event) => {
 
     const currentTime = Date.now();
 
-    if ((currentTime - lastShotTime) >= 900) {
+    if ((currentTime - lastShotTime) >= 2000) {
 
       lastShotTime = currentTime;
       console.log('¡Disparo!');
@@ -907,20 +919,9 @@ document.addEventListener('keydown', (event) => {
 
   }
 });
-/*
-function gameLoop() {
-  requestAnimationFrame(gameLoop);
 
-   // Actualizar la cámara para seguir al jugador
-   
 
-  // Otras actualizaciones del juego
-  updateProjectiles();
 
-  // Renderizar escena
-  renderer.render(scene, camera);
-}
-*/
 //funciones sonidos
 
 function loadCollisionSound(sonido) {

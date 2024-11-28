@@ -244,12 +244,33 @@
 	cursor: pointer;
 }
 
+.bg-success {
+    background-color: green !important;
+}
+
+.bg-warning {
+    background-color: yellow !important;
+}
+
+.bg-danger {
+    background-color: red !important;
+}
+
+/*
 #timer{
     position: absolute;
-    bottom:5px;
-    left:0px;
-    width:100%;
-    z-index: 5;
+    top:0px;
+    right: 100 px;
+    width:300%;
+    z-index: 15;
+}
+*/
+
+#timer{
+    position: absolute;
+    top: 0px;
+    width:300%;
+    z-index: 15;
 }
 
 .timertext {
